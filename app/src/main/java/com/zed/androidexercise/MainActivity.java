@@ -24,6 +24,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     TextView responseText;
 
     private String address = "http://10.0.2.2/get_url.json";
+    private String id = "1000";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,17 +40,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onClick(View view) {
         if (view.getId() == R.id.send_request) {
+
+            // 发送请求，接收返回数据进行处理，然后打开浏览器访问网页
             HttpUtil.sendHttpRequest(address, new okhttp3.Callback() {
+
                 @Override
                 public void onResponse(Call call, Response response) throws IOException {
-                    String responseText = response.body().string();
-                    String url;
-                    // 判断是json还是xml格式，并进行相应的处理
-                    if (address.endsWith(".json")) {
-                        url = parseJSONWithGSON("1002", responseText);
-                    } else {
-                        url = "error";
-                    }
+                    String responseData = response.body().string();
+                    String url = parse(id, responseData);
                     redirect(url);
                 }
 
@@ -58,14 +56,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 }
             });
+
         }
     }
 
-
-    private void redirect(String url) {
-        Uri uri = Uri.parse(url);
-        Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-        startActivity(intent);
+    // 判断是json还是xml格式，并进行相应的处理
+    // TODO:xml解析
+    private String parse(String id, String responseData) {
+        if (address.endsWith(".json")) {
+            return parseJSONWithGSON(id, responseData);
+        }
+        return "error";
     }
 
     // 解析json，根据id返回相应网址
@@ -79,6 +80,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         }
         return "not find";
+    }
+
+    // 打开浏览器访问指定网址
+    private void redirect(String url) {
+        Uri uri = Uri.parse(url);
+        Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+        startActivity(intent);
     }
 
 }
